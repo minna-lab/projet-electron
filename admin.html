@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LabyX — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0f13;
+      --surface:  #151820;
+      --surface2: #1c2030;
+      --border:   rgba(255,255,255,0.08);
+      --accent:   #f0c040;
+      --accent2:  #3be8b0;
+      --text:     #e8e8e8;
+      --muted:    #7a7f8e;
+      --danger:   #ff5f6d;
+      --warn:     #f07840;
+      --sidebar-w: 230px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 22px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      background: rgba(255,95,109,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(255,95,109,0.3);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 8px;
+    }
+    .sidebar-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .sidebar-title span { color: var(--accent); }
+
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+    .nav-section {
+      padding: 10px 18px 4px;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px;
+      font-size: 13px; color: var(--muted);
+      cursor: pointer; border: none; background: none; width: 100%;
+      text-align: left; transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-item.active {
+      color: var(--danger); background: rgba(255,95,109,0.08);
+      border-left: 2px solid var(--danger); padding-left: 18px;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      font-size: 12px; color: var(--muted);
+    }
+
+    /* ─── MAIN ─── */
+    .main { flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    .topbar {
+      height: 54px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 28px; gap: 14px;
+      background: var(--surface); position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px; font-weight: 700; letter-spacing: 1.5px; flex: 1;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 6px var(--accent2);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .topbar-info { font-size: 12px; color: var(--muted); }
+
+    .content { flex: 1; padding: 28px; overflow-y: auto; }
+
+    /* Pages */
+    .page { display: none; animation: pgIn 0.25s ease both; }
+    .page.active { display: block; }
+    @keyframes pgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    .page-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 16px; font-weight: 700; margin-bottom: 24px;
+    }
+    .page-title span { color: var(--accent); }
+
+    /* ─── KPI GRID ─── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .kpi.k-accent::before  { background: var(--accent); }
+    .kpi.k-accent2::before { background: var(--accent2); }
+    .kpi.k-danger::before  { background: var(--danger); }
+    .kpi.k-warn::before    { background: var(--warn); }
+
+    .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+    .kpi-val { font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; }
+    .kpi.k-accent  .kpi-val { color: var(--accent); }
+    .kpi.k-accent2 .kpi-val { color: var(--accent2); }
+    .kpi.k-danger  .kpi-val { color: var(--danger); }
+    .kpi.k-warn    .kpi-val { color: var(--warn); }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+    /* ─── CHARTS ROW ─── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .chart-title {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted); margin-bottom: 16px;
+    }
+    canvas.chart { width: 100%; height: 160px; display: block; }
+
+    /* ─── TABLES ─── */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .table-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .table-header-title { font-size: 13px; font-weight: 600; }
+    .table-search {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 13px; outline: none; width: 200px;
+    }
+    .table-search:focus { border-color: rgba(240,192,64,0.4); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; padding: 10px 20px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted);
+      background: var(--surface2);
+    }
+    tbody tr { border-top: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody td { padding: 12px 20px; font-size: 13px; }
+
+    .badge {
+      display: inline-block; padding: 3px 8px;
+      border-radius: 99px; font-size: 11px; font-weight: 500;
+    }
+    .badge-admin   { background: rgba(255,95,109,0.15); color: var(--danger); border: 1px solid rgba(255,95,109,0.3); }
+    .badge-user    { background: rgba(59,232,176,0.12); color: var(--accent2); border: 1px solid rgba(59,232,176,0.3); }
+    .badge-banned  { background: rgba(240,120,64,0.12); color: var(--warn); border: 1px solid rgba(240,120,64,0.3); }
+    .badge-easy    { background: rgba(59,232,176,0.12); color: var(--accent2); }
+    .badge-medium  { background: rgba(240,192,64,0.12); color: var(--accent); }
+    .badge-hard    { background: rgba(255,95,109,0.12); color: var(--danger); }
+
+    .btn-icon {
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); padding: 5px 8px;
+      cursor: pointer; font-size: 12px; transition: all 0.2s;
+      margin-left: 4px;
+    }
+    .btn-icon:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .btn-icon.danger:hover { color: var(--danger); border-color: rgba(255,95,109,0.4); }
+
+    .pagination {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 6px; padding: 12px 20px;
+      border-top: 1px solid var(--border);
+    }
+    .pg-btn {
+      width: 30px; height: 30px; border-radius: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); cursor: pointer; font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .pg-btn:hover, .pg-btn.active { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── ACTIVITY LOG ─── */
+    .log-list { list-style: none; }
+    .log-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 20px; border-top: 1px solid var(--border);
+    }
+    .log-dot {
+      width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+    }
+    .log-dot.info   { background: var(--accent2); }
+    .log-dot.warn   { background: var(--accent); }
+    .log-dot.danger { background: var(--danger); }
+    .log-text { font-size: 13px; flex: 1; }
+    .log-user { color: var(--accent2); font-weight: 500; }
+    .log-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ─── CONFIRM MODAL ─── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    .modal {
+      background: var(--surface);
+      border: 1px solid rgba(255,95,109,0.3);
+      border-radius: 16px; width: 400px; padding: 28px;
+    }
+    .modal-icon { font-size: 28px; margin-bottom: 12px; }
+    .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .modal-body { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel {
+      padding: 8px 18px; background: transparent;
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); cursor: pointer; font-size: 13px;
+      font-family: 'DM Sans', sans-serif; transition: border-color 0.2s;
+    }
+    .btn-cancel:hover { border-color: rgba(255,255,255,0.2); }
+    .btn-danger {
+      padding: 8px 18px; background: var(--danger); border: none;
+      border-radius: 8px; color: #fff; cursor: pointer; font-size: 13px;
+      font-family: 'Space Mono', monospace; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .btn-danger:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="admin-badge">ADMIN</div>
+    <div class="sidebar-title">LABY<span>X</span></div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Vue d'ensemble</div>
+    <button class="nav-item active" onclick="navigate('dashboard', this)">📊 Tableau de bord</button>
+    <button class="nav-item" onclick="navigate('activity', this)">📋 Journal d'activité</button>
+
+    <div class="nav-section">Gestion</div>
+    <button class="nav-item" onclick="navigate('users', this)">👥 Utilisateurs</button>
+    <button class="nav-item" onclick="navigate('mazes', this)">🌀 Labyrinthes</button>
+
+    <div class="nav-section">Système</div>
+    <button class="nav-item" onclick="navigate('config', this)">⚙️ Configuration</button>
+  </div>
+  <div class="sidebar-footer">
+    Session admin : <strong>root@labyx</strong>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">PANNEAU D'ADMINISTRATION</span>
+    <div class="status-dot"></div>
+    <span class="topbar-info">Système opérationnel</span>
+    <span class="topbar-info" id="clock"></span>
+  </div>
+
+  <div class="content">
+
+    <!-- PAGE: Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Vue d'ensemble — <span>Stats</span></div>
+
+      <div class="kpi-grid">
+        <div class="kpi k-accent">
+          <div class="kpi-label">Utilisateurs total</div>
+          <div class="kpi-val">248</div>
+          <div class="kpi-sub">+14 cette semaine</div>
+        </div>
+        <div class="kpi k-accent2">
+          <div class="kpi-label">Labyrinthes créés</div>
+          <div class="kpi-val">1 034</div>
+          <div class="kpi-sub">+87 cette semaine</div>
+        </div>
+        <div class="kpi k-warn">
+          <div class="kpi-label">Parties actives</div>
+          <div class="kpi-val">12</div>
+          <div class="kpi-sub">En ce moment</div>
+        </div>
+        <div class="kpi k-danger">
+          <div class="kpi-label">Comptes bannis</div>
+          <div class="kpi-val">3</div>
+          <div class="kpi-sub">Depuis le début</div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Inscriptions (7 derniers jours)</div>
+          <canvas class="chart" id="chart-signups"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Répartition des difficultés</div>
+          <canvas class="chart" id="chart-diff"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Parties jouées (7 derniers jours)</div>
+          <canvas class="chart" id="chart-games"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Tailles de labyrinthes populaires</div>
+          <canvas class="chart" id="chart-sizes"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Activité -->
+    <div class="page" id="page-activity">
+      <div class="page-title">Journal d'<span>Activité</span></div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-header-title">Événements récents</div>
+        </div>
+        <ul class="log-list" id="log-list"></ul>
+      </div>
+    </div>
+
+    <!-- PAGE: Utilisateurs -->
+    <div class="page" id="page-users">
+      <div class="page-title">Gestion des <span>Utilisateurs</span></div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-header-title">Tous les comptes (248)</div>
+          <input class="table-search" type="text" placeholder="🔍 Rechercher un utilisateur…" oninput="filterUsers(this.value)" />
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom d'utilisateur</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Labyrinthes</th>
+              <th>Inscription</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+        <div class="pagination" id="users-pg"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: Labyrinthes -->
+    <div class="page" id="page-mazes">
+      <div class="page-title">Tous les <span>Labyrinthes</span></div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-header-title">1 034 labyrinthes</div>
+          <input class="table-search" type="text" placeholder="🔍 Rechercher…" oninput="filterMazes(this.value)" />
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Auteur</th>
+              <th>Taille</th>
+              <th>Difficulté</th>
+              <th>Parties</th>
+              <th>Créé le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="mazes-tbody"></tbody>
+        </table>
+        <div class="pagination" id="mazes-pg"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: Config -->
+    <div class="page" id="page-config">
+      <div class="page-title"><span>Configuration</span> système</div>
+      <div class="table-card" style="padding:24px 28px">
+        <div style="display:grid;gap:16px;max-width:500px">
+          <div>
+            <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Taille max labyrinthes</label>
+            <input type="number" value="50" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:14px;width:200px;outline:none" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">JWT expiration (heures)</label>
+            <input type="number" value="24" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:14px;width:200px;outline:none" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Labyrinthes max par utilisateur</label>
+            <input type="number" value="50" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:14px;width:200px;outline:none" />
+          </div>
+          <button style="width:fit-content;padding:10px 22px;background:var(--accent);color:#0d0f13;border:none;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer" onclick="alert('→ ipcRenderer.invoke(\'save-config\', config)')">SAUVEGARDER</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title" id="confirm-title">Confirmer la suppression</div>
+    <div class="modal-body" id="confirm-body">Cette action est irréversible.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="document.getElementById('confirm-modal').classList.remove('open')">Annuler</button>
+      <button class="btn-danger" id="confirm-ok">SUPPRIMER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Clock ── */
+const updateClock = () => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+};
+setInterval(updateClock, 1000); updateClock();
+
+/* ── Navigate ── */
+function navigate(page, btn) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+}
+
+/* ── Mock Data ── */
+const USERS = [
+  { id:1, name:'Mariam',    email:'mariam@lab.fr',   role:'admin', labs:12, date:'01/05/2026' },
+  { id:2, name:'Younes',    email:'younes@lab.fr',   role:'user',  labs:8,  date:'02/05/2026' },
+  { id:3, name:'Sofia',     email:'sofia@lab.fr',    role:'user',  labs:25, date:'03/04/2026' },
+  { id:4, name:'Karim',     email:'karim@lab.fr',    role:'user',  labs:4,  date:'15/04/2026' },
+  { id:5, name:'Nassim',    email:'nassim@lab.fr',   role:'user',  labs:0,  date:'20/04/2026' },
+  { id:6, name:'SpamBot99', email:'spam@bot.net',    role:'banned',labs:0,  date:'10/04/2026' },
+];
+
+const MAZES = [
+  { id:1, name:'Labyrinthe Débutant', author:'Mariam', size:'10×10', diff:'facile',    games:47, date:'01/05/2026' },
+  { id:2, name:'Carrefour des Ombres',author:'Sofia',  size:'15×15', diff:'moyen',    games:23, date:'28/04/2026' },
+  { id:3, name:'Forêt Maudite',       author:'Karim',  size:'20×20', diff:'difficile', games:11, date:'25/04/2026' },
+  { id:4, name:'Tour Infinie',         author:'Mariam', size:'15×15', diff:'moyen',    games:31, date:'20/04/2026' },
+  { id:5, name:'Mini Dédale',          author:'Younes', size:'8×8',   diff:'facile',    games:62, date:'18/04/2026' },
+];
+
+const LOGS = [
+  { type:'info',   msg: '<span class="log-user">Mariam</span> a créé un nouveau labyrinthe "Tour Infinie"',  time:'Il y a 2 min' },
+  { type:'info',   msg: '<span class="log-user">Sofia</span> a terminé "Carrefour des Ombres" en 1:12',     time:'Il y a 8 min' },
+  { type:'warn',   msg: '<span class="log-user">SpamBot99</span> — tentative de connexion échouée (×5)',     time:'Il y a 15 min' },
+  { type:'danger', msg: 'Compte <span class="log-user">SpamBot99</span> banni par l\'admin',                time:'Il y a 16 min' },
+  { type:'info',   msg: '<span class="log-user">Karim</span> s\'est inscrit',                               time:'Il y a 1 h' },
+  { type:'info',   msg: 'Sauvegarde automatique DB effectuée',                                              time:'Il y a 2 h' },
+  { type:'warn',   msg: 'Taille labyrinthes approche la limite (48/50) pour <span class="log-user">Sofia</span>', time:'Il y a 3 h' },
+];
+
+/* ── Render Users Table ── */
+let usersFilter = '';
+function renderUsers() {
+  const tbody = document.getElementById('users-tbody');
+  const data = USERS.filter(u =>
+    u.name.toLowerCase().includes(usersFilter) || u.email.toLowerCase().includes(usersFilter)
+  );
+  tbody.innerHTML = data.map(u => `
+    <tr>
+      <td style="color:var(--muted)">#${u.id}</td>
+      <td><strong>${u.name}</strong></td>
+      <td style="color:var(--muted)">${u.email}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td>${u.labs}</td>
+      <td style="color:var(--muted)">${u.date}</td>
+      <td>
+        <button class="btn-icon" title="Voir" onclick="alert('→ Voir détails user #${u.id}')">👁</button>
+        <button class="btn-icon" title="Modifier" onclick="alert('→ Modifier user #${u.id}')">✏️</button>
+        <button class="btn-icon danger" title="Supprimer" onclick="confirmDelete('Supprimer l\\'utilisateur ${u.name} ?','Toutes ses données seront supprimées.')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+function filterUsers(q) { usersFilter = q.toLowerCase(); renderUsers(); }
+
+/* ── Render Mazes Table ── */
+let mazesFilter = '';
+function renderMazes() {
+  const tbody = document.getElementById('mazes-tbody');
+  const diffBadge = { facile:'badge-easy', moyen:'badge-medium', difficile:'badge-hard' };
+  const data = MAZES.filter(m =>
+    m.name.toLowerCase().includes(mazesFilter) || m.author.toLowerCase().includes(mazesFilter)
+  );
+  tbody.innerHTML = data.map(m => `
+    <tr>
+      <td style="color:var(--muted)">#${m.id}</td>
+      <td><strong>${m.name}</strong></td>
+      <td style="color:var(--muted)">${m.author}</td>
+      <td style="font-family:'Space Mono',monospace;font-size:12px">${m.size}</td>
+      <td><span class="badge ${diffBadge[m.diff]}">${m.diff}</span></td>
+      <td>${m.games}</td>
+      <td style="color:var(--muted)">${m.date}</td>
+      <td>
+        <button class="btn-icon" title="Jouer" onclick="alert('→ Preview labyrinthe #${m.id}')">▶</button>
+        <button class="btn-icon danger" title="Supprimer" onclick="confirmDelete('Supprimer ${m.name} ?','Ce labyrinthe et toutes ses parties seront supprimés.')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+function filterMazes(q) { mazesFilter = q.toLowerCase(); renderMazes(); }
+
+/* ── Render Log ── */
+function renderLog() {
+  const ul = document.getElementById('log-list');
+  ul.innerHTML = LOGS.map(l => `
+    <li class="log-item">
+      <div class="log-dot ${l.type}"></div>
+      <div>
+        <div class="log-text">${l.msg}</div>
+        <div class="log-time">${l.time}</div>
+      </div>
+    </li>`).join('');
+}
+
+/* ── Charts (canvas, sans lib) ── */
+function drawBarChart(canvasId, labels, values, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400;
+  const H = canvas.offsetHeight || 160;
+  canvas.width = W; canvas.height = H;
+  const pad = { t:10, b:24, l:8, r:8 };
+  const max = Math.max(...values) || 1;
+  const barW = (W - pad.l - pad.r) / labels.length;
+  ctx.clearRect(0,0,W,H);
+  labels.forEach((label, i) => {
+    const barH = ((values[i] / max) * (H - pad.t - pad.b));
+    const x = pad.l + i * barW;
+    const y = H - pad.b - barH;
+    ctx.fillStyle = color + '33';
+    ctx.fillRect(x + 4, y, barW - 8, barH);
+    ctx.fillStyle = color;
+    ctx.fillRect(x + 4, y, barW - 8, 2);
+    ctx.fillStyle = '#7a7f8e';
+    ctx.font = '10px DM Sans';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x + barW/2, H - 6);
+    ctx.fillStyle = color;
+    ctx.fillText(values[i], x + barW/2, y - 3);
+  });
+}
+
+function drawPieChart(canvasId, labels, values, colors) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400;
+  const H = canvas.offsetHeight || 160;
+  canvas.width = W; canvas.height = H;
+  const total = values.reduce((a,b) => a+b, 0);
+  const cx = W * 0.35, cy = H/2, r = Math.min(cx, H/2) - 16;
+  let angle = -Math.PI/2;
+  values.forEach((v, i) => {
+    const sweep = (v/total) * Math.PI * 2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx, cy, r, angle, angle+sweep);
+    ctx.closePath();
+    ctx.fillStyle = colors[i]; ctx.fill();
+    angle += sweep;
+  });
+  // Donut hole
+  ctx.beginPath(); ctx.arc(cx, cy, r*0.5, 0, Math.PI*2);
+  ctx.fillStyle = '#151820'; ctx.fill();
+  // Legend
+  labels.forEach((l, i) => {
+    const y = cy - (labels.length*18)/2 + i*20 + 9;
+    ctx.fillStyle = colors[i];
+    ctx.fillRect(W*0.7, y-6, 12, 12);
+    ctx.fillStyle = '#e8e8e8';
+    ctx.font = '12px DM Sans';
+    ctx.textAlign = 'left';
+    ctx.fillText(l + ' ' + values[i] + '%', W*0.7+18, y+2);
+  });
+}
+
+/* ── Init ── */
+renderUsers();
+renderMazes();
+renderLog();
+
+setTimeout(() => {
+  drawBarChart('chart-signups', ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'], [4,7,3,9,6,14,5], '#3be8b0');
+  drawBarChart('chart-games',   ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'], [12,18,9,22,15,30,11], '#f0c040');
+  drawPieChart('chart-diff', ['Facile','Moyen','Difficile'], [38,42,20], ['#3be8b0','#f0c040','#ff5f6d']);
+  drawBarChart('chart-sizes', ['8×8','10×10','15×15','20×20','25×25'], [120,340,280,180,114], '#f07840');
+}, 100);
+
+/* ── Confirm delete ── */
+function confirmDelete(title, body) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').textContent = body;
+  document.getElementById('confirm-modal').classList.add('open');
+  document.getElementById('confirm-ok').onclick = () => {
+    document.getElementById('confirm-modal').classList.remove('open');
+    // → ipcRenderer.invoke('delete-...', id)
+  };
+}
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('confirm-modal'))
+    document.getElementById('confirm-modal').classList.remove('open');
+});
+</script>
+</body>
+</html>
