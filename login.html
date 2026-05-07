@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/><title>LabyX</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0f13;--sur:#151820;--brd:rgba(255,255,255,.08);--acc:#f0c040;--grn:#3be8b0;--red:#ff5f6d;--txt:#e8e8e8;--muted:#7a7f8e}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--brd) 1px,transparent 1px),linear-gradient(90deg,var(--brd) 1px,transparent 1px);background-size:40px 40px;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 70% at 50% 50%,transparent,rgba(13,15,19,.9));z-index:0}
+.box{position:relative;z-index:1;width:400px;animation:up .4s ease}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.logo{text-align:center;margin-bottom:28px;font-family:'Space Mono',monospace;font-size:22px;letter-spacing:3px}
+.logo span{color:var(--acc)}
+.card{background:var(--sur);border:1px solid var(--brd);border-radius:14px;padding:32px}
+.tabs{display:flex;border:1px solid var(--brd);border-radius:8px;overflow:hidden;margin-bottom:24px}
+.tab{flex:1;padding:9px;background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:.2s}
+.tab.on{background:var(--acc);color:#0d0f13;font-weight:700}
+.panel{display:none}.panel.on{display:block;animation:px .25s ease}
+@keyframes px{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}
+label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 5px}
+input[type=email],input[type=text],input[type=password]{width:100%;background:#1c2030;border:1px solid var(--brd);border-radius:7px;padding:10px 13px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:.2s}
+input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(240,192,64,.1)}
+.err{font-size:12px;color:var(--red);margin-top:4px;display:none}.err.on{display:block}
+.btn{width:100%;margin-top:18px;padding:12px;background:var(--acc);color:#0d0f13;border:none;border-radius:7px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:.2s}
+.btn:hover{opacity:.85}
+.link{text-align:center;margin-top:14px;font-size:13px;color:var(--muted)}
+.link span{color:var(--acc);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">🌀 LABY<span>X</span></div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab on" onclick="sw('login',this)">Connexion</button>
+      <button class="tab"    onclick="sw('signup',this)">Inscription</button>
+    </div>
+
+    <div class="panel on" id="p-login">
+      <label>Email</label>
+      <input type="email" id="lEmail" placeholder="vous@exemple.com"/>
+      <label>Mot de passe</label>
+      <input type="password" id="lPwd" placeholder="••••••••"/>
+      <p class="err" id="eLogin"></p>
+      <button class="btn" onclick="login()">→ SE CONNECTER</button>
+      <div class="link">Pas de compte ? <span onclick="sw('signup',document.querySelectorAll('.tab')[1])">S'inscrire</span></div>
+    </div>
+
+    <div class="panel" id="p-signup">
+      <label>Nom d'utilisateur</label>
+      <input type="text" id="sName" placeholder="joueur_123"/>
+      <label>Email</label>
+      <input type="email" id="sEmail" placeholder="vous@exemple.com"/>
+      <label>Mot de passe</label>
+      <input type="password" id="sPwd" placeholder="••••••••"/>
+      <label>Confirmer</label>
+      <input type="password" id="sPwd2" placeholder="••••••••"/>
+      <p class="err" id="eSignup"></p>
+      <button class="btn" onclick="signup()">→ CRÉER MON COMPTE</button>
+      <div class="link">Déjà un compte ? <span onclick="sw('login',document.querySelectorAll('.tab')[0])">Se connecter</span></div>
+    </div>
+  </div>
+</div>
+<script>
+function sw(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+async function login(){
+  const email=document.getElementById('lEmail').value;
+  const password=document.getElementById('lPwd').value;
+  const err=document.getElementById('eLogin');
+  if(!email||!password){err.textContent='Remplis tous les champs !';err.classList.add('on');return;}
+  if(window.api){
+    const r=await window.api.login({email,password});
+    if(r.error){err.textContent=r.error;err.classList.add('on');}
+    else{localStorage.setItem('user',JSON.stringify(r.user));}
+  } else { alert('✓ Connexion simulée !'); }
+}
+async function signup(){
+  const username=document.getElementById('sName').value;
+  const email=document.getElementById('sEmail').value;
+  const password=document.getElementById('sPwd').value;
+  const pwd2=document.getElementById('sPwd2').value;
+  const err=document.getElementById('eSignup');
+  if(!username||!email||!password){err.textContent='Remplis tous les champs !';err.classList.add('on');return;}
+  if(password!==pwd2){err.textContent='Les mots de passe ne correspondent pas !';err.classList.add('on');return;}
+  if(window.api){
+    const r=await window.api.register({username,email,password});
+    if(r.error){err.textContent=r.error;err.classList.add('on');}
+    else{alert('Compte créé !');sw('login',document.querySelectorAll('.tab')[0]);}
+  } else { alert('✓ Compte créé (simulé) !'); sw('login',document.querySelectorAll('.tab')[0]); }
+}
+</script>
+</body>
+</html>
