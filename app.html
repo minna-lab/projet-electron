@@ -1,117 +1,305 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"/><title>LabyX — App</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0d0f13;--sur:#151820;--sur2:#1c2030;--brd:rgba(255,255,255,.08);--acc:#f0c040;--grn:#3be8b0;--red:#ff5f6d;--txt:#e8e8e8;--muted:#7a7f8e}
-body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;display:flex;height:100vh;overflow:hidden}
-/* Sidebar */
-.sidebar{width:210px;background:var(--sur);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0}
-.logo{padding:22px 18px;border-bottom:1px solid var(--brd);font-family:'Space Mono',monospace;font-size:15px;letter-spacing:2px}
-.logo span{color:var(--acc)}
-nav{flex:1;padding:10px 0}
-.ni{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:13px;color:var(--muted);background:none;border:none;width:100%;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.2s}
-.ni:hover{color:var(--txt);background:rgba(255,255,255,.04)}
-.ni.on{color:var(--acc);background:rgba(240,192,64,.08);border-left:2px solid var(--acc);padding-left:16px}
-.user-box{border-top:1px solid var(--brd);padding:14px 18px;display:flex;align-items:center;gap:10px}
-.av{width:32px;height:32px;border-radius:50%;background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--acc);flex-shrink:0}
-.uname{font-size:13px;font-weight:500}.urole{font-size:11px;color:var(--muted)}
-/* Main */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:52px;border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
-.topbar-title{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1.5px;flex:1}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 6px var(--grn);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.content{flex:1;overflow-y:auto;padding:24px}
-/* Pages */
-.page{display:none;animation:pgIn .2s ease}.page.on{display:block}
-@keyframes pgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.ptitle{font-family:'Space Mono',monospace;font-size:16px;margin-bottom:20px}
-.ptitle span{color:var(--acc)}
-/* Stats */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
-.stat{background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:16px}
-.stat p{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-.stat strong{font-family:'Space Mono',monospace;font-size:24px;color:var(--acc)}
-/* Grille labyrinthes */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
-.card{background:var(--sur);border:1px solid var(--brd);border-radius:10px;overflow:hidden;cursor:pointer;transition:.2s}
-.card:hover{border-color:rgba(240,192,64,.4);transform:translateY(-2px)}
-.card canvas{display:block;width:100%;height:130px}
-.card-info{padding:10px 13px}
-.card-info strong{display:block;font-size:13px;margin-bottom:4px}
-.card-info span{font-size:11px;color:var(--muted);background:var(--sur2);border:1px solid var(--brd);padding:2px 7px;border-radius:99px;margin-right:4px}
-/* Btn */
-.btn{padding:9px 18px;background:var(--acc);color:#0d0f13;border:none;border-radius:7px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:18px;transition:.2s}
-.btn:hover{opacity:.85}
-.btn-sec{padding:9px 18px;background:transparent;border:1px solid var(--brd);color:var(--txt);border-radius:7px;cursor:pointer;font-size:13px;transition:.2s}
-.btn-sec:hover{border-color:rgba(240,192,64,.4);color:var(--acc)}
-/* Vue labyrinthe */
-#cvMain{border:1px solid var(--brd);border-radius:8px;display:block;margin-bottom:14px}
-.row{display:flex;gap:10px}
-</style>
+  <meta charset="UTF-8" />
+  <title>LabyX — Application</title>
+  <style>
+    /* ── Général ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #0d0f13;
+      color: #e8e8e8;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 210px;
+      background-color: #151820;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      padding: 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 16px;
+      letter-spacing: 2px;
+      font-weight: bold;
+    }
+    .sidebar-logo span { color: #f0c040; }
+
+    .sidebar nav { flex: 1; padding: 10px 0; }
+
+    .nav-btn {
+      display: block;
+      width: 100%;
+      padding: 11px 18px;
+      background: none;
+      border: none;
+      color: #7a7f8e;
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .nav-btn:hover { color: #e8e8e8; background: rgba(255,255,255,0.04); }
+    .nav-btn.actif {
+      color: #f0c040;
+      background: rgba(240,192,64,0.08);
+      border-left: 2px solid #f0c040;
+      padding-left: 16px;
+    }
+
+    .sidebar-user {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(240,192,64,0.15);
+      border: 1px solid rgba(240,192,64,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #f0c040;
+      flex-shrink: 0;
+    }
+    .user-nom  { font-size: 13px; font-weight: 500; }
+    .user-role { font-size: 11px; color: #7a7f8e; }
+
+    /* ── Contenu principal ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 52px;
+      background-color: #151820;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .topbar-titre {
+      flex: 1;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+    }
+    .point-vert {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: #3be8b0;
+      box-shadow: 0 0 6px #3be8b0;
+    }
+
+    .contenu { flex: 1; overflow-y: auto; padding: 26px; }
+
+    /* ── Pages ── */
+    .page { display: none; }
+    .page.actif { display: block; }
+
+    .page-titre {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .page-titre span { color: #f0c040; }
+
+    /* ── Cartes de stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      background-color: #151820;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .stat p    { font-size: 11px; color: #7a7f8e; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .stat span { font-size: 26px; font-weight: bold; color: #f0c040; }
+
+    /* ── Grille des labyrinthes ── */
+    .grille {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 14px;
+    }
+
+    .carte {
+      background-color: #151820;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .carte:hover {
+      border-color: rgba(240,192,64,0.5);
+      transform: translateY(-2px);
+    }
+    .carte canvas { display: block; width: 100%; }
+    .carte-info { padding: 10px 13px; }
+    .carte-info strong { display: block; font-size: 13px; margin-bottom: 5px; }
+    .carte-tag {
+      font-size: 11px;
+      color: #7a7f8e;
+      background-color: #1c2030;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 2px 7px;
+      border-radius: 99px;
+      margin-right: 4px;
+    }
+
+    /* ── Boutons ── */
+    .btn {
+      padding: 9px 18px;
+      background-color: #f0c040;
+      color: #0d0f13;
+      border: none;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-bottom: 18px;
+    }
+    .btn:hover { opacity: 0.85; }
+
+    .btn-sec {
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #e8e8e8;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-sec:hover { border-color: rgba(240,192,64,0.4); color: #f0c040; }
+
+    /* ── Vue labyrinthe ── */
+    #cv-principal {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      display: block;
+      margin-bottom: 14px;
+    }
+    .actions { display: flex; gap: 10px; }
+
+    /* ── Profil ── */
+    .profil-box {
+      background-color: #151820;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 22px;
+      max-width: 300px;
+    }
+    .profil-box strong { display: block; font-size: 18px; margin-bottom: 6px; }
+    .profil-box p { color: #7a7f8e; font-size: 13px; }
+  </style>
 </head>
 <body>
+
+<!-- ── SIDEBAR ── -->
 <div class="sidebar">
-  <div class="logo">🌀 LABY<span>X</span></div>
+  <div class="sidebar-logo">🌀 LABY<span>X</span></div>
   <nav>
-    <button class="ni on" onclick="go('dashboard',this)">🏠 Accueil</button>
-    <button class="ni"    onclick="go('labs',this)">🌀 Labyrinthes</button>
-    <button class="ni"    onclick="go('play',this)">▶ Jouer</button>
-    <button class="ni"    onclick="go('profil',this)">👤 Profil</button>
+    <button class="nav-btn actif" onclick="allerA('accueil', this)">🏠 Accueil</button>
+    <button class="nav-btn"       onclick="allerA('labyrinthes', this)">🌀 Labyrinthes</button>
+    <button class="nav-btn"       onclick="allerA('jouer', this)">▶ Jouer</button>
+    <button class="nav-btn"       onclick="allerA('profil', this)">👤 Profil</button>
   </nav>
-  <div class="user-box">
-    <div class="av" id="avLetter">MA</div>
-    <div><div class="uname" id="uname">Mariam</div><div class="urole">Joueur</div></div>
+  <div class="sidebar-user">
+    <div class="avatar" id="avatar">MA</div>
+    <div>
+      <div class="user-nom"  id="user-nom">Mariam</div>
+      <div class="user-role" id="user-role">user</div>
+    </div>
   </div>
 </div>
 
+<!-- ── MAIN ── -->
 <div class="main">
   <div class="topbar">
-    <span class="topbar-title" id="ttitle">ACCUEIL</span>
-    <div class="dot"></div>
-    <span style="font-size:12px;color:var(--muted)">En ligne</span>
+    <span class="topbar-titre" id="topbar-titre">ACCUEIL</span>
+    <div class="point-vert"></div>
+    <span style="font-size:12px;color:#7a7f8e">En ligne</span>
   </div>
-  <div class="content">
 
-    <div class="page on" id="page-dashboard">
-      <div class="ptitle">Bonjour, <span id="hello">Mariam</span> 👾</div>
+  <div class="contenu">
+
+    <!-- Page Accueil -->
+    <div class="page actif" id="page-accueil">
+      <div class="page-titre">Bonjour, <span id="hello">Mariam</span> 👾</div>
       <div class="stats">
-        <div class="stat"><p>Labyrinthes</p><strong id="st1">0</strong></div>
-        <div class="stat"><p>Meilleur temps</p><strong style="color:var(--grn)">1:23</strong></div>
-        <div class="stat"><p>Parties jouées</p><strong>47</strong></div>
+        <div class="stat">
+          <p>Labyrinthes</p>
+          <span id="nb-labs">0</span>
+        </div>
+        <div class="stat">
+          <p>Meilleur temps</p>
+          <span style="color:#3be8b0">1:23</span>
+        </div>
+        <div class="stat">
+          <p>Parties jouées</p>
+          <span>47</span>
+        </div>
       </div>
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Récents</div>
-      <div class="grid" id="gDash"></div>
+      <div style="font-size:11px;color:#7a7f8e;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Récents</div>
+      <div class="grille" id="grille-accueil"></div>
     </div>
 
-    <div class="page" id="page-labs">
-      <div class="ptitle">Mes <span>Labyrinthes</span></div>
-      <button class="btn" onclick="creer()">+ NOUVEAU</button>
-      <div class="grid" id="gLabs"></div>
+    <!-- Page Labyrinthes -->
+    <div class="page" id="page-labyrinthes">
+      <div class="page-titre">Mes <span>Labyrinthes</span></div>
+      <button class="btn" onclick="creerLabyrinthe()">+ NOUVEAU</button>
+      <div class="grille" id="grille-labs"></div>
     </div>
 
-    <div class="page" id="page-play">
-      <div class="ptitle">▶ <span>Jouer</span></div>
-      <div class="grid" id="gPlay"></div>
+    <!-- Page Jouer -->
+    <div class="page" id="page-jouer">
+      <div class="page-titre">▶ <span>Jouer</span></div>
+      <div class="grille" id="grille-jouer"></div>
     </div>
 
+    <!-- Page Vue labyrinthe -->
     <div class="page" id="page-vue">
-      <div class="ptitle" id="labTitle">Labyrinthe</div>
-      <canvas id="cvMain"></canvas>
-      <div class="row">
+      <div class="page-titre" id="titre-lab">Labyrinthe</div>
+      <canvas id="cv-principal"></canvas>
+      <div class="actions">
         <button class="btn" onclick="resoudre()">⚡ RÉSOUDRE (BFS)</button>
-        <button class="btn-sec" onclick="go('labs',document.querySelectorAll('.ni')[1])">← Retour</button>
+        <button class="btn-sec" onclick="allerA('labyrinthes', document.querySelectorAll('.nav-btn')[1])">← Retour</button>
       </div>
     </div>
 
+    <!-- Page Profil -->
     <div class="page" id="page-profil">
-      <div class="ptitle">Mon <span>Profil</span></div>
-      <div style="background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:22px;max-width:300px">
-        <div style="font-size:20px;font-weight:600;margin-bottom:6px" id="pNom">—</div>
-        <div style="color:var(--muted);font-size:13px" id="pEmail">—</div>
+      <div class="page-titre">Mon <span>Profil</span></div>
+      <div class="profil-box">
+        <strong id="profil-nom">—</strong>
+        <p id="profil-email">—</p>
       </div>
     </div>
 
@@ -120,101 +308,187 @@ nav{flex:1;padding:10px 0}
 
 <script src="labyrinth.js"></script>
 <script>
-const LABS=[
-  {id:1,name:'Labyrinthe Débutant', cols:10,rows:10,seed:1111,grid_data:null},
-  {id:2,name:'Carrefour des Ombres',cols:15,rows:15,seed:2222,grid_data:null},
-  {id:3,name:'Forêt Maudite',       cols:20,rows:20,seed:3333,grid_data:null},
-  {id:4,name:'Tour Infinie',         cols:15,rows:15,seed:4444,grid_data:null},
-  {id:5,name:'Mini Dédale',          cols: 8,rows: 8,seed:5555,grid_data:null},
-  {id:6,name:'Crypte Profonde',      cols:25,rows:25,seed:6666,grid_data:null},
-  {id:7,name:'Jardin Labyrinthique', cols:12,rows:12,seed:7777,grid_data:null},
-  {id:8,name:'Spirale du Chaos',     cols:20,rows:20,seed:8888,grid_data:null},
-  {id:9,name:'Couloirs Perdus',      cols:18,rows:18,seed:9191,grid_data:null},
-  {id:10,name:'Niveau Final',        cols:30,rows:30,seed:1010,grid_data:null},
-];
+  // ── Données fictives (navigateur sans Electron) ──
+  var LABS_FICTIFS = [
+    { id:1,  name: 'Labyrinthe Débutant',  cols: 10, rows: 10, seed: 1111, grid_data: null },
+    { id:2,  name: 'Carrefour des Ombres', cols: 15, rows: 15, seed: 2222, grid_data: null },
+    { id:3,  name: 'Forêt Maudite',        cols: 20, rows: 20, seed: 3333, grid_data: null },
+    { id:4,  name: 'Tour Infinie',          cols: 15, rows: 15, seed: 4444, grid_data: null },
+    { id:5,  name: 'Mini Dédale',           cols:  8, rows:  8, seed: 5555, grid_data: null },
+    { id:6,  name: 'Crypte Profonde',       cols: 25, rows: 25, seed: 6666, grid_data: null },
+    { id:7,  name: 'Jardin Labyrinthique',  cols: 12, rows: 12, seed: 7777, grid_data: null },
+    { id:8,  name: 'Spirale du Chaos',      cols: 20, rows: 20, seed: 8888, grid_data: null },
+    { id:9,  name: 'Couloirs Perdus',       cols: 18, rows: 18, seed: 9191, grid_data: null },
+    { id:10, name: 'Niveau Final',          cols: 30, rows: 30, seed: 1010, grid_data: null },
+  ];
 
-async function getLabs(){return window.api?await window.api.getLabyrinths():LABS;}
-async function saveLab(d){
-  if(window.api)return await window.api.saveLabyrinth(d);
-  LABS.push({id:LABS.length+1,name:d.name,cols:d.cols,rows:d.rows,seed:d.seed,grid_data:JSON.stringify(d.gridData)});
-}
+  // ── Récupérer l'utilisateur connecté ──
+  var user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!user.username) {
+    user = { id: 1, username: 'Mariam', email: 'mariam@labyx.fr', role: 'user' };
+  }
 
-const user=window.api?JSON.parse(localStorage.getItem('user')||'{}'):{id:1,username:'Mariam',email:'mariam@labyx.fr'};
-document.getElementById('uname').textContent=user.username||'?';
-document.getElementById('avLetter').textContent=(user.username||'?').slice(0,2).toUpperCase();
-document.getElementById('hello').textContent=user.username||'?';
-document.getElementById('pNom').textContent=user.username||'?';
-document.getElementById('pEmail').textContent=user.email||'';
+  document.getElementById('hello').textContent      = user.username;
+  document.getElementById('user-nom').textContent   = user.username;
+  document.getElementById('user-role').textContent  = user.role || 'user';
+  document.getElementById('avatar').textContent     = user.username.slice(0, 2).toUpperCase();
+  document.getElementById('profil-nom').textContent = user.username;
+  document.getElementById('profil-email').textContent = user.email || '';
 
-const TITLES={dashboard:'ACCUEIL',labs:'MES LABYRINTHES',play:'JOUER',profil:'MON PROFIL',vue:'LABYRINTHE'};
-function go(id,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
-  document.getElementById('page-'+id).classList.add('on');
-  if(btn)btn.classList.add('on');
-  document.getElementById('ttitle').textContent=TITLES[id]||id.toUpperCase();
-  if(id==='labs'||id==='dashboard')charger();
-  if(id==='play')charger('play');
-}
+  // ── Labyrinthes en mémoire ──
+  var labs = LABS_FICTIFS.slice();
 
-function mkLab(lab){
-  const l=lab.grid_data?Labyrinth.fromJSON({cols:lab.cols,rows:lab.rows,seed:lab.seed,grid:JSON.parse(lab.grid_data)}):new Labyrinth({cols:lab.cols,rows:lab.rows,seed:lab.seed});
-  if(!lab.grid_data)l.generate();
-  return l;
-}
+  // ── Obtenir les labyrinthes ──
+  async function obtenirLabs() {
+    if (window.api) return await window.api.getLabyrinths(user.id);
+    return labs;
+  }
 
-function mkCard(lab,conteneur){
-  const div=document.createElement('div');div.className='card';
-  const cv=document.createElement('canvas');
-  const l=mkLab(lab);
-  l.cellSize=Math.floor(130/Math.max(lab.cols,lab.rows));
-  cv.width=lab.cols*l.cellSize;cv.height=lab.rows*l.cellSize;
-  cv.style.height='130px';cv.style.objectFit='contain';
-  l.render(cv);
-  div.appendChild(cv);
-  div.innerHTML+=`<div class="card-info"><strong>${lab.name}</strong><span>${lab.cols}×${lab.rows}</span></div>`;
-  div.onclick=()=>ouvrir(lab,l);
-  conteneur.appendChild(div);
-}
+  // ── Sauvegarder un labyrinthe ──
+  async function sauvegarder(data) {
+    if (window.api) {
+      return await window.api.saveLabyrinth(data);
+    } else {
+      labs.push({
+        id: labs.length + 1,
+        name: data.name,
+        cols: data.cols,
+        rows: data.rows,
+        seed: data.seed,
+        grid_data: JSON.stringify(data.gridData)
+      });
+    }
+  }
 
-async function charger(mode='liste'){
-  const labs=await getLabs();
-  document.getElementById('st1').textContent=labs.length;
-  const gD=document.getElementById('gDash');
-  const gL=document.getElementById('gLabs');
-  const gP=document.getElementById('gPlay');
-  if(mode==='liste'){gD.innerHTML='';gL.innerHTML='';labs.slice(0,4).forEach(l=>mkCard(l,gD));labs.forEach(l=>mkCard(l,gL));}
-  else{gP.innerHTML='';labs.forEach(l=>mkCard(l,gP));}
-}
+  // ── Navigation entre pages ──
+  var TITRES = {
+    accueil: 'ACCUEIL',
+    labyrinthes: 'MES LABYRINTHES',
+    jouer: 'JOUER',
+    vue: 'LABYRINTHE',
+    profil: 'MON PROFIL'
+  };
 
-let labActuel=null;
-function ouvrir(lab,l){
-  labActuel=l;
-  document.getElementById('labTitle').textContent=lab.name;
-  go('vue',null);
-  const cv=document.getElementById('cvMain');
-  const cs=Math.floor(500/Math.max(lab.cols,lab.rows));
-  labActuel.cellSize=cs;cv.width=lab.cols*cs;cv.height=lab.rows*cs;
-  labActuel.render(cv);
-}
+  function allerA(pageId, bouton) {
+    // Cacher toutes les pages
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('actif');
+    });
+    // Désactiver tous les boutons
+    document.querySelectorAll('.nav-btn').forEach(function(b) {
+      b.classList.remove('actif');
+    });
+    // Afficher la bonne page
+    document.getElementById('page-' + pageId).classList.add('actif');
+    if (bouton) bouton.classList.add('actif');
+    document.getElementById('topbar-titre').textContent = TITRES[pageId] || pageId.toUpperCase();
 
-async function creer(){
-  const name=prompt('Nom du labyrinthe :');if(!name)return;
-  const cols=parseInt(prompt('Largeur (ex: 15) :'))||15;
-  const rows=parseInt(prompt('Hauteur (ex: 15) :'))||15;
-  const l=new Labyrinth({cols,rows});l.generate();
-  const j=l.toJSON();
-  await saveLab({userId:user.id,name,cols,rows,seed:j.seed,gridData:j.grid});
-  alert('Sauvegardé !');charger();
-}
+    // Charger les données si nécessaire
+    if (pageId === 'accueil' || pageId === 'labyrinthes') chargerLabs('liste');
+    if (pageId === 'jouer') chargerLabs('jouer');
+  }
 
-function resoudre(){
-  if(!labActuel)return;
-  labActuel.solve();
-  labActuel.render(document.getElementById('cvMain'));
-}
+  // ── Créer une carte canvas pour un labyrinthe ──
+  function creerCarte(lab, conteneur) {
+    // Créer ou recharger le labyrinthe
+    var labObj;
+    if (lab.grid_data) {
+      var data = JSON.parse(lab.grid_data);
+      labObj = Labyrinth.depuisJSON({ cols: lab.cols, rows: lab.rows, seed: lab.seed, grid: data });
+    } else {
+      labObj = new Labyrinth(lab.cols, lab.rows, lab.seed);
+      labObj.generer();
+    }
 
-charger();
+    // Créer la carte HTML
+    var carte = document.createElement('div');
+    carte.className = 'carte';
+
+    var canvas = document.createElement('canvas');
+    var taille = Math.floor(130 / Math.max(lab.cols, lab.rows));
+    labObj.cellSize = taille;
+    canvas.height = lab.rows * taille;
+    labObj.afficher(canvas);
+
+    carte.appendChild(canvas);
+    carte.innerHTML += '<div class="carte-info"><strong>' + lab.name + '</strong>'
+      + '<span class="carte-tag">' + lab.cols + '×' + lab.rows + '</span>'
+      + '</div>';
+
+    carte.onclick = function() { ouvrirLab(lab, labObj); };
+    conteneur.appendChild(carte);
+  }
+
+  // ── Charger et afficher les labyrinthes ──
+  async function chargerLabs(mode) {
+    var liste = await obtenirLabs();
+    document.getElementById('nb-labs').textContent = liste.length;
+
+    if (mode === 'liste') {
+      var gA = document.getElementById('grille-accueil');
+      var gL = document.getElementById('grille-labs');
+      gA.innerHTML = '';
+      gL.innerHTML = '';
+      // 4 premiers sur l'accueil, tous sur la page labyrinthes
+      for (var i = 0; i < Math.min(4, liste.length); i++) creerCarte(liste[i], gA);
+      for (var i = 0; i < liste.length; i++) creerCarte(liste[i], gL);
+    } else {
+      var gJ = document.getElementById('grille-jouer');
+      gJ.innerHTML = '';
+      for (var i = 0; i < liste.length; i++) creerCarte(liste[i], gJ);
+    }
+  }
+
+  // ── Ouvrir un labyrinthe en grand ──
+  var labActuel = null;
+
+  function ouvrirLab(lab, labObj) {
+    labActuel = labObj;
+    document.getElementById('titre-lab').innerHTML = lab.name;
+    allerA('vue', null);
+
+    var canvas = document.getElementById('cv-principal');
+    var taille = Math.floor(500 / Math.max(lab.cols, lab.rows));
+    labActuel.cellSize  = taille;
+    canvas.width        = lab.cols * taille;
+    canvas.height       = lab.rows * taille;
+    labActuel.afficher(canvas);
+  }
+
+  // ── Créer un nouveau labyrinthe ──
+  async function creerLabyrinthe() {
+    var nom  = prompt('Nom du labyrinthe :');
+    if (!nom) return;
+    var cols = parseInt(prompt('Largeur (exemple : 15) :')) || 15;
+    var rows = parseInt(prompt('Hauteur  (exemple : 15) :')) || 15;
+
+    var lab = new Labyrinth(cols, rows);
+    lab.generer();
+    var json = lab.versJSON();
+
+    await sauvegarder({
+      userId:   user.id,
+      name:     nom,
+      cols:     cols,
+      rows:     rows,
+      seed:     json.seed,
+      gridData: json.grid
+    });
+
+    alert('Labyrinthe "' + nom + '" sauvegardé !');
+    chargerLabs('liste');
+  }
+
+  // ── Résoudre avec BFS ──
+  function resoudre() {
+    if (!labActuel) return;
+    labActuel.resoudre();
+    labActuel.afficher(document.getElementById('cv-principal'));
+  }
+
+  // ── Démarrage ──
+  chargerLabs('liste');
 </script>
+
 </body>
 </html>
