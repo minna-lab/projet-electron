@@ -1,22 +1,25 @@
 {
-  "name": "projet-labyrinthe",
+  "name": "labyrinthe-app",
   "version": "1.0.0",
+  "description": "Application de création et résolution de labyrinthes",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
   },
-  "build": {
-    "appId": "com.labyrinthe.app",
-    "win": { "target": "nsis" }
-  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0",
-    "sqlite3": "^5.1.6",
-    "electron": "^28.0.0"
+    "sql.js": "^1.11.0",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "electron-builder": "^24.0.0"
+    "electron": "^29.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.labyrinthe.app",
+    "win": {
+      "target": "nsis"
+    }
   }
 }
