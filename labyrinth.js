@@ -1,269 +1,123 @@
-/**
- * labyrinth.js
- * Génération de labyrinthe : Recursive Backtracking (DFS)
- * Résolution              : BFS (Breadth-First Search)
- * Affichage               : Canvas HTML5
- */
+// ============================================================
+// labyrinth.js — Génération (DFS) et Résolution (BFS)
+// ============================================================
 
-class Labyrinth {
+const SIZES = {
+  small:  { rows: 11, cols: 11 },
+  medium: { rows: 21, cols: 21 },
+  large:  { rows: 31, cols: 31 }
+};
 
-  constructor(cols, rows, seed) {
-    this.cols     = cols;
-    this.rows     = rows;
-    this.seed     = seed || Math.floor(Math.random() * 999999);
-    this.cellSize = 20;
+const WALL = 1;
+const PATH = 0;
 
-    // Grille : chaque cellule stocke ses passages ouverts
-    // N = 1, S = 2, E = 4, W = 8
-    this.grid = [];
-    for (var i = 0; i < cols * rows; i++) {
-      this.grid.push(0);
+// ============================================================
+// GÉNÉRATION — Recursive Backtracking (DFS)
+// ============================================================
+
+function generate(size = 'medium', difficulty = 5) {
+  const { rows, cols } = SIZES[size] || SIZES.medium;
+
+  const grid = Array.from({ length: rows }, () => Array(cols).fill(WALL));
+
+  const DIRS = [
+    { dr: -2, dc: 0 }, { dr: 2, dc: 0 },
+    { dr: 0, dc: -2 }, { dr: 0, dc: 2 }
+  ];
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-
-    this.cheminSolution = []; // rempli par resoudre()
+    return arr;
   }
 
-  // ── Accès à la grille ──────────────────────────
-
-  index(x, y) {
-    return y * this.cols + x;
-  }
-
-  dansGrille(x, y) {
-    return x >= 0 && x < this.cols && y >= 0 && y < this.rows;
-  }
-
-  aPassage(x, y, direction) {
-    var bits = { N: 1, S: 2, E: 4, W: 8 };
-    return (this.grid[this.index(x, y)] & bits[direction]) !== 0;
-  }
-
-  ouvrirPassage(x, y, direction) {
-    var bits    = { N: 1, S: 2, E: 4, W: 8 };
-    var oppose  = { N: 'S', S: 'N', E: 'W', W: 'E' };
-    var delta   = { N: [0,-1], S: [0,1], E: [1,0], W: [-1,0] };
-    var dx = delta[direction][0];
-    var dy = delta[direction][1];
-    var nx = x + dx;
-    var ny = y + dy;
-    this.grid[this.index(x, y)]   |= bits[direction];
-    this.grid[this.index(nx, ny)] |= bits[oppose[direction]];
-  }
-
-  // ── Générateur pseudo-aléatoire (déterministe) ──
-
-  creerRNG(seed) {
-    var s = seed >>> 0;
-    return function() {
-      s += 0x6d2b79f5;
-      var t = Math.imul(s ^ (s >>> 15), s | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  // ── GÉNÉRATION — Recursive Backtracking (DFS) ──
-
-  generer() {
-    var rng      = this.creerRNG(this.seed);
-    var visite   = [];
-    var delta    = { N: [0,-1], S: [0,1], E: [1,0], W: [-1,0] };
-    var directions = ['N', 'S', 'E', 'W'];
-
-    for (var i = 0; i < this.cols * this.rows; i++) {
-      visite.push(false);
-    }
-
-    var pile = [{ x: 0, y: 0 }];
-    visite[this.index(0, 0)] = true;
-
-    while (pile.length > 0) {
-      var actuel = pile[pile.length - 1];
-
-      // Mélanger les directions aléatoirement
-      for (var i = directions.length - 1; i > 0; i--) {
-        var j = Math.floor(rng() * (i + 1));
-        var temp = directions[i];
-        directions[i] = directions[j];
-        directions[j] = temp;
-      }
-
-      var bouge = false;
-      for (var d = 0; d < directions.length; d++) {
-        var dir = directions[d];
-        var nx = actuel.x + delta[dir][0];
-        var ny = actuel.y + delta[dir][1];
-
-        if (this.dansGrille(nx, ny) && !visite[this.index(nx, ny)]) {
-          this.ouvrirPassage(actuel.x, actuel.y, dir);
-          visite[this.index(nx, ny)] = true;
-          pile.push({ x: nx, y: ny });
-          bouge = true;
-          break;
-        }
-      }
-
-      if (!bouge) {
-        pile.pop(); // Backtrack
+  function carve(r, c) {
+    grid[r][c] = PATH;
+    for (const { dr, dc } of shuffle([...DIRS])) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1 && grid[nr][nc] === WALL) {
+        grid[r + dr / 2][c + dc / 2] = PATH;
+        carve(nr, nc);
       }
     }
-
-    return this;
   }
 
-  // ── RÉSOLUTION — BFS ───────────────────────────
+  carve(1, 1);
 
-  resoudre() {
-    var delta  = { N: [0,-1], S: [0,1], E: [1,0], W: [-1,0] };
-    var depart = { x: 0, y: 0 };
-    var arrivee = { x: this.cols - 1, y: this.rows - 1 };
+  // Entrée et sortie
+  grid[0][1]             = PATH;
+  grid[rows - 1][cols - 2] = PATH;
 
-    var visite  = [];
-    var parent  = [];
-    for (var i = 0; i < this.cols * this.rows; i++) {
-      visite.push(false);
-      parent.push(-1);
+  // Difficulté : rebouche des cases MAIS protège le chemin entrée/sortie
+  // Cases INTERDITES à reboucher : voisines de l'entrée et de la sortie
+  const forbidden = new Set([
+    `1,1`,                          // case juste après l'entrée
+    `${rows-2},${cols-2}`,          // case juste avant la sortie
+    `0,1`, `${rows-1},${cols-2}`    // entrée et sortie elles-mêmes
+  ]);
+
+  const extraWalls = Math.floor((difficulty / 10) * (rows * cols * 0.02));
+  for (let i = 0; i < extraWalls; i++) {
+    const r = 1 + Math.floor(Math.random() * (rows - 2));
+    const c = 1 + Math.floor(Math.random() * (cols - 2));
+    if (grid[r][c] === PATH && !forbidden.has(`${r},${c}`)) {
+      grid[r][c] = WALL;
     }
-
-    var file = [depart];
-    visite[this.index(depart.x, depart.y)] = true;
-
-    while (file.length > 0) {
-      var actuel = file.shift();
-
-      if (actuel.x === arrivee.x && actuel.y === arrivee.y) break;
-
-      var dirs = ['N', 'S', 'E', 'W'];
-      for (var d = 0; d < dirs.length; d++) {
-        var dir = dirs[d];
-        if (!this.aPassage(actuel.x, actuel.y, dir)) continue;
-
-        var nx = actuel.x + delta[dir][0];
-        var ny = actuel.y + delta[dir][1];
-
-        if (!this.dansGrille(nx, ny)) continue;
-        if (visite[this.index(nx, ny)]) continue;
-
-        visite[this.index(nx, ny)] = true;
-        parent[this.index(nx, ny)] = this.index(actuel.x, actuel.y);
-        file.push({ x: nx, y: ny });
-      }
-    }
-
-    // Reconstituer le chemin de l'arrivée jusqu'au départ
-    var chemin = [];
-    var pos = this.index(arrivee.x, arrivee.y);
-    while (pos !== -1) {
-      chemin.unshift({
-        x: pos % this.cols,
-        y: Math.floor(pos / this.cols)
-      });
-      pos = parent[pos];
-    }
-
-    this.cheminSolution = chemin;
-    return chemin;
   }
 
-  // ── AFFICHAGE sur Canvas ───────────────────────
-
-  afficher(canvas) {
-    var ctx = canvas.getContext('2d');
-    var cs  = this.cellSize;
-    var W   = this.cols * cs;
-    var H   = this.rows * cs;
-
-    canvas.width  = W;
-    canvas.height = H;
-
-    // Fond
-    ctx.fillStyle = '#0d0f13';
-    ctx.fillRect(0, 0, W, H);
-
-    // Afficher le chemin solution si disponible
-    if (this.cheminSolution.length > 0) {
-      ctx.strokeStyle = 'rgba(59, 232, 176, 0.55)';
-      ctx.lineWidth   = cs * 0.38;
-      ctx.lineCap     = 'round';
-      ctx.lineJoin    = 'round';
-      ctx.beginPath();
-      for (var i = 0; i < this.cheminSolution.length; i++) {
-        var cx = this.cheminSolution[i].x * cs + cs / 2;
-        var cy = this.cheminSolution[i].y * cs + cs / 2;
-        if (i === 0) ctx.moveTo(cx, cy);
-        else         ctx.lineTo(cx, cy);
-      }
-      ctx.stroke();
-    }
-
-    // Dessiner les murs
-    ctx.strokeStyle = '#f0c040';
-    ctx.lineWidth   = 1.5;
-
-    for (var y = 0; y < this.rows; y++) {
-      for (var x = 0; x < this.cols; x++) {
-        var px = x * cs;
-        var py = y * cs;
-
-        ctx.beginPath();
-
-        // Mur Nord
-        if (!this.aPassage(x, y, 'N')) {
-          ctx.moveTo(px, py);
-          ctx.lineTo(px + cs, py);
-        }
-        // Mur Ouest
-        if (!this.aPassage(x, y, 'W')) {
-          ctx.moveTo(px, py);
-          ctx.lineTo(px, py + cs);
-        }
-        // Mur Sud (seulement dernière ligne)
-        if (y === this.rows - 1 && !this.aPassage(x, y, 'S')) {
-          ctx.moveTo(px, py + cs);
-          ctx.lineTo(px + cs, py + cs);
-        }
-        // Mur Est (seulement dernière colonne)
-        if (x === this.cols - 1 && !this.aPassage(x, y, 'E')) {
-          ctx.moveTo(px + cs, py);
-          ctx.lineTo(px + cs, py + cs);
-        }
-
-        ctx.stroke();
-      }
-    }
-
-    // Point de départ (vert)
-    ctx.fillStyle = '#3be8b0';
-    ctx.beginPath();
-    ctx.arc(cs / 2, cs / 2, cs * 0.28, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Point d'arrivée (rouge)
-    ctx.fillStyle = '#ff5f6d';
-    ctx.beginPath();
-    ctx.arc(W - cs / 2, H - cs / 2, cs * 0.28, 0, Math.PI * 2);
-    ctx.fill();
+  // Vérifie qu'un chemin existe encore, sinon on retire les murs ajoutés
+  // (sécurité absolue : si le BFS échoue, on recrée sans murs extra)
+  const testResult = solve({ grid, rows, cols, start: { r: 0, c: 1 }, end: { r: rows - 1, c: cols - 2 } });
+  if (!testResult.success) {
+    // Le labyrinthe est bloqué → on regénère sans murs extra (difficulté ignorée)
+    return generate(size, 0);
   }
 
-  // ── EXPORT / IMPORT JSON (pour la base SQLite) ──
-
-  versJSON() {
-    return {
-      cols: this.cols,
-      rows: this.rows,
-      seed: this.seed,
-      grid: this.grid.slice() // copie du tableau
-    };
-  }
-
-  static depuisJSON(data) {
-    var lab = new Labyrinth(data.cols, data.rows, data.seed);
-    lab.grid = data.grid.slice();
-    return lab;
-  }
+  return { grid, rows, cols, start: { r: 0, c: 1 }, end: { r: rows - 1, c: cols - 2 } };
 }
 
-// Export pour Node.js / Electron
-if (typeof module !== 'undefined') {
-  module.exports = { Labyrinth };
+// ============================================================
+// RÉSOLUTION — BFS (Breadth-First Search)
+// ============================================================
+
+function solve(labData) {
+  const { grid, start, end } = labData;
+  const rows = grid.length;
+  const cols = grid[0].length;
+
+  // Vérifie que start et end sont bien des cases accessibles
+  if (grid[start.r][start.c] === WALL || grid[end.r][end.c] === WALL) {
+    return { success: false, path: [] };
+  }
+
+  const queue   = [{ r: start.r, c: start.c, path: [{ r: start.r, c: start.c }] }];
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  visited[start.r][start.c] = true;
+
+  const DIRS = [
+    { dr: -1, dc: 0 }, { dr: 1, dc: 0 },
+    { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
+  ];
+
+  while (queue.length > 0) {
+    const { r, c, path } = queue.shift();
+
+    if (r === end.r && c === end.c) return { success: true, path };
+
+    for (const { dr, dc } of DIRS) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] === PATH && !visited[nr][nc]) {
+        visited[nr][nc] = true;
+        queue.push({ r: nr, c: nc, path: [...path, { r: nr, c: nc }] });
+      }
+    }
+  }
+
+  return { success: false, path: [] };
 }
+
+module.exports = { generate, solve };
