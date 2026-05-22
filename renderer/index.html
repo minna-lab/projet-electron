@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Labyrinthe App</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ===== ÉCRAN DE CHARGEMENT ===== -->
+  <div id="screen-loading" class="screen active">
+    <div class="loading-box">
+      <div class="maze-spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  </div>
+
+  <!-- ===== ÉCRAN AUTH UTILISATEUR ===== -->
+  <div id="screen-auth" class="screen">
+    <div class="auth-layout">
+
+      <!-- Formulaire centré -->
+      <div class="auth-left">
+        <div class="auth-card">
+          <h1 class="logo-title">🌀 LABYRINTHE</h1>
+          <p class="logo-sub">Crée. Explore. Résous.</p>
+
+          <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="login">Connexion</button>
+            <button class="tab-btn" data-tab="register">Inscription</button>
+          </div>
+
+          <div id="tab-login" class="tab-content active">
+            <div class="form-group">
+              <label>Nom d'utilisateur</label>
+              <input type="text" id="login-username" placeholder="Ton pseudo..." autocomplete="off"/>
+            </div>
+            <div class="form-group">
+              <label>Mot de passe</label>
+              <input type="password" id="login-password" placeholder="••••••••"/>
+            </div>
+            <button class="btn-primary" id="btn-login">Se connecter</button>
+            <p class="auth-error" id="login-error"></p>
+          </div>
+
+          <div id="tab-register" class="tab-content">
+            <div class="form-group">
+              <label>Nom d'utilisateur</label>
+              <input type="text" id="register-username" placeholder="Choisis un pseudo..." autocomplete="off"/>
+            </div>
+            <div class="form-group">
+              <label>Mot de passe</label>
+              <input type="password" id="register-password" placeholder="Au moins 4 caractères"/>
+            </div>
+            <button class="btn-primary" id="btn-register">Créer mon compte</button>
+            <p class="auth-error" id="register-error"></p>
+          </div>
+
+          <!-- Bouton accès admin -->
+          <div class="admin-access">
+            <button class="btn-admin-switch" id="btn-go-admin">⚙️ Accès Administrateur</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonne droite : liste des comptes -->
+      <div class="auth-right">
+        <div class="accounts-panel">
+          <h3 class="accounts-title">👥 Comptes enregistrés</h3>
+          <div id="accounts-list" class="accounts-list">
+            <p class="accounts-empty">Aucun compte pour l'instant...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== ÉCRAN AUTH ADMIN ===== -->
+  <div id="screen-admin-auth" class="screen">
+    <div class="admin-auth-container">
+      <div class="admin-auth-card">
+        <div class="admin-auth-icon">⚙️</div>
+        <h1 class="admin-auth-title">ADMINISTRATION</h1>
+        <p class="admin-auth-sub">Accès réservé aux administrateurs</p>
+        <div class="form-group">
+          <label>Identifiant admin</label>
+          <input type="text" id="admin-login-username" placeholder="admin" autocomplete="off"/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="admin-login-password" placeholder="••••••••"/>
+        </div>
+        <button class="btn-admin-login" id="btn-admin-login">🔐 Connexion Admin</button>
+        <p class="auth-error" id="admin-login-error"></p>
+        <button class="btn-back-user" id="btn-back-to-user">← Retour connexion utilisateur</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APP UTILISATEUR ===== -->
+  <div id="screen-app" class="screen">
+    <aside class="sidebar">
+      <div class="sidebar-logo">🌀 Labyrinthe</div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-view="dashboard">🏠 Accueil</button>
+        <button class="nav-btn" data-view="my-labs">📋 Mes labyrinthes</button>
+        <button class="nav-btn" data-view="create-lab">✨ Créer / Générer</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span id="user-display">👤 Utilisateur</span>
+        <button class="btn-logout" id="btn-logout">Déconnexion</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <!-- VUE : Dashboard -->
+      <div id="view-dashboard" class="view active">
+        <h2 class="view-title">Bienvenue ! 👋</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-num" id="stat-total">0</span>
+            <span class="stat-label">Labyrinthes créés</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="stat-easy">0</span>
+            <span class="stat-label">Faciles (1–3)</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="stat-hard">0</span>
+            <span class="stat-label">Difficiles (7–10)</span>
+          </div>
+        </div>
+        <p class="dashboard-hint">→ Génère un labyrinthe dans <strong>Créer / Générer</strong> !</p>
+      </div>
+
+      <!-- VUE : Mes labyrinthes -->
+      <div id="view-my-labs" class="view">
+        <h2 class="view-title">📋 Mes labyrinthes</h2>
+        <div id="labs-list" class="labs-grid"></div>
+      </div>
+
+      <!-- VUE : Créer / Générer -->
+      <div id="view-create-lab" class="view">
+        <h2 class="view-title">✨ Créer un labyrinthe</h2>
+        <div class="create-panel">
+          <div class="controls-card">
+            <div class="form-group">
+              <label>Nom du labyrinthe</label>
+              <input type="text" id="lab-name" placeholder="Mon labyrinthe..." />
+            </div>
+            <div class="form-group">
+              <label>Taille</label>
+              <select id="lab-size">
+                <option value="small">Petite (11×11)</option>
+                <option value="medium" selected>Moyenne (21×21)</option>
+                <option value="large">Grande (31×31)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Difficulté : <strong id="diff-display">5</strong></label>
+              <input type="range" id="lab-difficulty" min="1" max="10" value="5" />
+              <div class="range-labels"><span>Facile</span><span>Difficile</span></div>
+            </div>
+            <button class="btn-primary" id="btn-generate">🎲 Générer</button>
+            <button class="btn-secondary" id="btn-solve" disabled>🔍 Résoudre</button>
+            <button class="btn-success" id="btn-save" disabled>💾 Sauvegarder</button>
+            <button class="btn-reset" id="btn-reset">🔄 Réinitialiser</button>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="lab-canvas"></canvas>
+            <p id="canvas-hint" class="canvas-hint">Génère un labyrinthe pour le voir ici !</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VUE : Détail labyrinthe -->
+      <div id="view-lab-detail" class="view">
+        <button class="btn-back" id="btn-back-labs">← Retour</button>
+        <h2 class="view-title" id="detail-title">Labyrinthe</h2>
+        <div class="create-panel">
+          <div class="controls-card">
+            <p id="detail-info" class="detail-info"></p>
+            <button class="btn-secondary" id="btn-solve-detail">🔍 Résoudre</button>
+            <button class="btn-danger" id="btn-delete-lab">🗑️ Supprimer</button>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="detail-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== APP ADMIN (interface séparée) ===== -->
+  <div id="screen-admin-app" class="screen">
+    <div class="admin-app">
+
+      <!-- Header admin -->
+      <header class="admin-header">
+        <div class="admin-header-left">
+          <span class="admin-header-icon">⚙️</span>
+          <span class="admin-header-title">PANNEAU D'ADMINISTRATION</span>
+        </div>
+        <div class="admin-header-right">
+          <nav class="admin-nav">
+            <button class="admin-nav-btn active" data-panel="users">👥 Utilisateurs</button>
+            <button class="admin-nav-btn" data-panel="labs">🗺️ Labyrinthes</button>
+            <button class="admin-nav-btn" data-panel="create">✨ Créer</button>
+          </nav>
+          <span id="admin-user-display">👤 Admin</span>
+          <button class="btn-admin-logout" id="btn-admin-logout">Déconnexion</button>
+        </div>
+      </header>
+
+      <!-- Stats globales -->
+      <div class="admin-stats-bar" id="admin-stats-bar"></div>
+
+      <!-- Panneaux admin (un seul visible à la fois) -->
+      <div class="admin-body">
+
+        <!-- PANNEAU : Utilisateurs -->
+        <section class="admin-panel active" id="panel-users">
+          <div class="admin-col-header">
+            <h3>👥 Gestion des utilisateurs</h3>
+            <button class="btn-admin-action" id="btn-show-create-user">+ Nouvel utilisateur</button>
+          </div>
+          <div id="create-user-form" class="admin-inline-form hidden">
+            <input type="text" id="new-username" placeholder="Pseudo" />
+            <input type="password" id="new-password" placeholder="Mot de passe" />
+            <select id="new-role">
+              <option value="user">Utilisateur</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="btn-admin-action" id="btn-create-user">Créer</button>
+          </div>
+          <table class="admin-table" id="users-table">
+            <thead><tr><th>ID</th><th>Pseudo</th><th>Rôle</th><th>Créé le</th><th>Action</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+        <!-- PANNEAU : Tous les labyrinthes -->
+        <section class="admin-panel" id="panel-labs">
+          <div class="admin-col-header">
+            <h3>🗺️ Tous les labyrinthes</h3>
+          </div>
+          <table class="admin-table" id="all-labs-table">
+            <thead><tr><th>ID</th><th>Nom</th><th>Propriétaire</th><th>Taille</th><th>Diff.</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <!-- Modal visualisation labyrinthe admin -->
+          <div id="admin-lab-modal" class="admin-modal hidden">
+            <div class="admin-modal-content">
+              <div class="admin-modal-header">
+                <h4 id="admin-modal-title">Labyrinthe</h4>
+                <button id="btn-close-modal">✕</button>
+              </div>
+              <div class="admin-modal-body">
+                <canvas id="admin-lab-canvas"></canvas>
+              </div>
+              <div class="admin-modal-footer">
+                <button class="btn-secondary" id="btn-admin-solve">🔍 Résoudre</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANNEAU : Créer un labyrinthe (admin) -->
+        <section class="admin-panel" id="panel-create">
+          <div class="admin-col-header">
+            <h3>✨ Créer un labyrinthe</h3>
+          </div>
+          <div class="create-panel">
+            <div class="controls-card">
+              <div class="form-group">
+                <label>Nom</label>
+                <input type="text" id="admin-lab-name" placeholder="Nom du labyrinthe..." />
+              </div>
+              <div class="form-group">
+                <label>Taille</label>
+                <select id="admin-lab-size">
+                  <option value="small">Petite (11×11)</option>
+                  <option value="medium" selected>Moyenne (21×21)</option>
+                  <option value="large">Grande (31×31)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Difficulté : <strong id="admin-diff-display">5</strong></label>
+                <input type="range" id="admin-lab-difficulty" min="1" max="10" value="5" />
+                <div class="range-labels"><span>Facile</span><span>Difficile</span></div>
+              </div>
+              <button class="btn-primary" id="btn-admin-generate">🎲 Générer</button>
+              <button class="btn-secondary" id="btn-admin-solve-create" disabled>🔍 Résoudre</button>
+              <button class="btn-success" id="btn-admin-save" disabled>💾 Sauvegarder</button>
+              <button class="btn-reset" id="btn-admin-reset">🔄 Réinitialiser</button>
+            </div>
+            <div class="canvas-wrapper">
+              <canvas id="admin-create-canvas"></canvas>
+              <p id="admin-canvas-hint" class="canvas-hint">Génère un labyrinthe pour le voir ici !</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
