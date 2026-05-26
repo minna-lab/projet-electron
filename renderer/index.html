@@ -10,11 +10,35 @@
 </head>
 <body>
 
-  <!-- ===== ÉCRAN DE CHARGEMENT ===== -->
+  <!-- ===== ÉCRAN DE CHARGEMENT / PAGE D'ACCUEIL ===== -->
   <div id="screen-loading" class="screen active">
-    <div class="loading-box">
-      <div class="maze-spinner"></div>
-      <p>Chargement...</p>
+    <div class="splash-bg">
+      <div class="splash-grid"></div>
+      <div class="splash-content">
+        <div class="splash-logo">
+          <div class="splash-icon">🌀</div>
+          <h1 class="splash-title">LABYRINTHE</h1>
+          <p class="splash-tagline">Crée · Explore · Résous</p>
+        </div>
+        <div class="splash-features">
+          <div class="splash-feature">
+            <span class="sf-icon">🎲</span>
+            <span class="sf-text">Génération aléatoire</span>
+          </div>
+          <div class="splash-feature">
+            <span class="sf-icon">🔍</span>
+            <span class="sf-text">Résolution automatique</span>
+          </div>
+          <div class="splash-feature">
+            <span class="sf-icon">💾</span>
+            <span class="sf-text">Sauvegarde illimitée</span>
+          </div>
+        </div>
+        <div class="splash-loader">
+          <div class="splash-bar"><div class="splash-cell" id="sc-0"></div><div class="splash-cell" id="sc-1"></div><div class="splash-cell" id="sc-2"></div><div class="splash-cell" id="sc-3"></div><div class="splash-cell" id="sc-4"></div><div class="splash-cell" id="sc-5"></div><div class="splash-cell" id="sc-6"></div><div class="splash-cell" id="sc-7"></div><div class="splash-cell" id="sc-8"></div><div class="splash-cell" id="sc-9"></div><div class="splash-cell" id="sc-10"></div><div class="splash-cell" id="sc-11"></div></div>
+          <p class="splash-status" id="splash-status">Préparation du labyrinthe...</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -22,7 +46,7 @@
   <div id="screen-auth" class="screen">
     <div class="auth-layout">
 
-      <!-- Formulaire centré -->
+      <!-- Formulaire connexion -->
       <div class="auth-left">
         <div class="auth-card">
           <h1 class="logo-title">🌀 LABYRINTHE</h1>
