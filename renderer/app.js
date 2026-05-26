@@ -39,6 +39,20 @@ function normalizeLab(data) {
   return { grid, rows, cols, start: data.start || {r:0,c:1}, end: data.end || {r:rows-1,c:cols-2} };
 }
 
+// ---- TOAST (remplace alert — ne vole pas le focus) ----
+function toast(msg, type = 'success') {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.className = 'toast toast-' + type + ' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
 // ---- COMPTES (page de connexion) ----
 async function refreshAccountsList() {
   const users = await window.api.adminGetUsers();
@@ -57,6 +71,45 @@ async function refreshAccountsList() {
 
 // ---- AUTHENTIFICATION ----
 async function checkAutoLogin() {
+  // Anime la barre de chargement de la splash screen
+  const TOTAL_CELLS = 12;
+  const statusEl    = document.getElementById('splash-status');
+  const steps = [
+    { cell: 1,  msg: '🧱 Construction des murs...' },
+    { cell: 3,  msg: '🐀 Lâcher des souris dans le labyrinthe...' },
+    { cell: 5,  msg: '🗺️ Calcul des chemins sans issue...' },
+    { cell: 7,  msg: '🔦 Allumage des torches...' },
+    { cell: 9,  msg: '🧩 Derniers pièges en place...' },
+    { cell: 11, msg: '🎉 Bonne chance pour sortir !' },
+    { cell: 12, msg: '✅ Prêt !' }
+  ];
+
+  // Remplit les cases une par une
+  function fillCells(upTo, activeIdx) {
+    for (let i = 0; i < TOTAL_CELLS; i++) {
+      const el = document.getElementById('sc-' + i);
+      if (!el) continue;
+      el.className = 'splash-cell';
+      if (i < upTo)     el.classList.add('filled');
+      if (i === activeIdx) el.classList.add('active');
+    }
+  }
+
+  for (const step of steps) {
+    await new Promise(r => setTimeout(r, 380));
+    fillCells(step.cell - 1, step.cell - 1);
+    if (statusEl) {
+      statusEl.style.opacity = '0';
+      await new Promise(r => setTimeout(r, 100));
+      statusEl.textContent = step.msg;
+      statusEl.style.opacity = '1';
+    }
+  }
+  // Rempli tout en doré à la fin
+  await new Promise(r => setTimeout(r, 300));
+  fillCells(TOTAL_CELLS, -1);
+  await new Promise(r => setTimeout(r, 400));
+
   const token = localStorage.getItem('token');
   if (!token) { await refreshAccountsList(); showScreen('screen-auth'); return; }
   const result = await window.api.verifyToken(token);
@@ -256,7 +309,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   document.getElementById('btn-solve').disabled = true;
   document.getElementById('btn-save').disabled  = true;
   state.currentGrid = null;
-  alert('✅ Labyrinthe sauvegardé !');
+  toast('✅ Labyrinthe sauvegardé !');
 });
 
 // ---- GÉNÉRATION ADMIN ----
@@ -287,7 +340,7 @@ document.getElementById('btn-admin-save').addEventListener('click', async () => 
     size: document.getElementById('admin-lab-size').value,
     difficulty: parseInt(document.getElementById('admin-lab-difficulty').value)
   });
-  await loadAdminView(); alert('✅ Labyrinthe sauvegardé !');
+  await loadAdminView(); toast('✅ Labyrinthe sauvegardé !');
 });
 document.getElementById('btn-admin-reset').addEventListener('click', () => {
   document.getElementById('admin-lab-name').value = '';
@@ -373,7 +426,7 @@ async function loadAdminView() {
 async function adminDeleteUser(id) {
   if (!confirm('Supprimer cet utilisateur et tous ses labyrinthes ?')) return;
   const r = await window.api.adminDeleteUser(id);
-  r.success ? loadAdminView() : alert(r.error);
+  r.success ? loadAdminView() : toast(r.error, 'error');
 }
 async function adminDeleteLab(id) {
   if (!confirm('Supprimer ce labyrinthe ?')) return;
@@ -387,14 +440,14 @@ document.getElementById('btn-create-user').addEventListener('click', async () =>
   const username = document.getElementById('new-username').value.trim();
   const password = document.getElementById('new-password').value;
   const role     = document.getElementById('new-role').value;
-  if (!username || !password) { alert('Remplis tous les champs.'); return; }
+  if (!username || !password) { toast('Remplis tous les champs.', 'error'); return; }
   const r = await window.api.adminCreateUser({ username, password, role });
   if (r.success) {
     document.getElementById('new-username').value = '';
     document.getElementById('new-password').value = '';
     document.getElementById('create-user-form').classList.add('hidden');
     loadAdminView();
-  } else { alert(r.error); }
+  } else { toast(r.error, 'error'); }
 });
 
 // ---- DÉMARRAGE ----
