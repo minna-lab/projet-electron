@@ -1,6 +1,4 @@
-// ============================================================
 // labyrinth.js — Génération (DFS) et Résolution (BFS)
-// ============================================================
 
 const SIZES = {
   small:  { rows: 11, cols: 11 },
@@ -11,9 +9,7 @@ const SIZES = {
 const WALL = 1;
 const PATH = 0;
 
-// ============================================================
 // GÉNÉRATION — Recursive Backtracking (DFS)
-// ============================================================
 
 function generate(size = 'medium', difficulty = 5) {
   const { rows, cols } = SIZES[size] || SIZES.medium;
@@ -79,9 +75,7 @@ function generate(size = 'medium', difficulty = 5) {
   return { grid, rows, cols, start: { r: 0, c: 1 }, end: { r: rows - 1, c: cols - 2 } };
 }
 
-// ============================================================
 // RÉSOLUTION — BFS (Breadth-First Search)
-// ============================================================
 
 function solve(labData) {
   const { grid, start, end } = labData;
