@@ -21,6 +21,10 @@ projet_labyrinthe/
     └── app.js       → Logique de l'interface
 ```
 
+## 👥 Contributions
+- **Minna** : `main.js`, `preload.js`, `auth.js`, `admin.js`,`database.js`
+- **Mariam** : `labyrinth.js`, , `renderer/index.html`, `renderer/style.css`, `renderer/app.js`, `README.md`
+
 ---
 
 ## 🚀 Installation
